@@ -1,5 +1,13 @@
 # Toolkit for working with SQL databases in Go
 
+[![GoDoc Widget]][GoDoc]
+
+## Installation
+
+```
+go get -u github.com/acronis/go-dbkit
+```
+
 ## Structure
 
 ### `/`
@@ -157,3 +165,6 @@ fmt.Println("Lock released")
 Copyright © 2024 Acronis International GmbH.
 
 Licensed under [MIT License](./LICENSE).
+
+[GoDoc]: https://pkg.go.dev/github.com/acronis/go-dbkit
+[GoDoc Widget]: https://godoc.org/github.com/acronis/go-dbkit?status.svg
