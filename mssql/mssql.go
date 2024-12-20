@@ -12,6 +12,8 @@ Released under MIT license.
 package mssql
 
 import (
+	"errors"
+
 	mssql "github.com/denisenkom/go-mssqldb"
 
 	"github.com/acronis/go-dbkit"
@@ -20,7 +22,8 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&mssql.Driver{}, func(err error) bool {
-		if msErr, ok := err.(mssql.Error); ok {
+		var msErr mssql.Error
+		if errors.As(err, &msErr) {
 			if msErr.Number == int32(MSSQLErrDeadlock) { // deadlock error
 				return true
 			}
@@ -41,8 +44,9 @@ const (
 
 // CheckMSSQLError checks if the passed error relates to MSSQL and it's internal code matches the one from the argument.
 func CheckMSSQLError(err error, errCode ErrCode) bool {
-	if sqlErr, ok := err.(mssql.Error); ok {
-		return sqlErr.SQLErrorNumber() == int32(errCode)
+	var msErr mssql.Error
+	if errors.As(err, &msErr) {
+		return msErr.SQLErrorNumber() == int32(errCode)
 	}
 	return false
 }

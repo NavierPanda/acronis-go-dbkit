@@ -22,13 +22,14 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&mysql.MySQLDriver{}, func(err error) bool {
-		if mysqlErr, ok := err.(*mysql.MySQLError); ok {
-			switch mysqlErr.Number {
+		var mySQLError *mysql.MySQLError
+		if errors.As(err, &mySQLError) {
+			switch mySQLError.Number {
 			case uint16(MySQLErrDeadlock), uint16(MySQLErrLockTimedOut):
 				return true
 			}
 		}
-		if err == mysql.ErrInvalidConn {
+		if errors.Is(err, mysql.ErrInvalidConn) {
 			return true
 		}
 		return false

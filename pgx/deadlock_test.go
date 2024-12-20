@@ -7,7 +7,7 @@ package pgx
 import (
 	gotesting "testing"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/acronis/go-dbkit"
 	"github.com/acronis/go-dbkit/internal/testing"

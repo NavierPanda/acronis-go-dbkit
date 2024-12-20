@@ -12,6 +12,8 @@ Released under MIT license.
 package postgres
 
 import (
+	"errors"
+
 	pg "github.com/lib/pq"
 
 	"github.com/acronis/go-dbkit"
@@ -20,7 +22,8 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&pg.Driver{}, func(err error) bool {
-		if pgErr, ok := err.(*pg.Error); ok {
+		var pgErr *pg.Error
+		if errors.As(err, &pgErr) {
 			name := dbkit.PostgresErrCode(pgErr.Code.Name())
 			switch name {
 			case dbkit.PostgresErrCodeDeadlockDetected:
@@ -36,7 +39,8 @@ func init() {
 // CheckPostgresError checks if the passed error relates to Postgres and it's internal code matches the one from the argument.
 // nolint: staticcheck // lib/pq using is deprecated. Use pgx Postgres driver.
 func CheckPostgresError(err error, errCode dbkit.PostgresErrCode) bool {
-	if pgErr, ok := err.(*pg.Error); ok {
+	var pgErr *pg.Error
+	if errors.As(err, &pgErr) {
 		return pgErr.Code.Name() == string(errCode)
 	}
 	return false

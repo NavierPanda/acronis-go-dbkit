@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/acronis/go-dbkit"
@@ -85,14 +84,11 @@ func DeadlockTest(t *testing.T, dialect dbkit.Dialect, checkDeadlockErr func(err
 	done.Wait()
 
 	if tx1Err != nil {
-		require.Truef(t, checkDeadlockErr(tx1Err), "Wrong error: %w", tx2Err)
+		require.Truef(t, checkDeadlockErr(tx1Err), "dedlock error is expecting at one of the goroutines: %v", tx1Err)
+		require.NoError(t, tx2Err, "deadlock error is not expecting at another goroutine")
 		return
 	}
-	if tx2Err != nil {
-		require.Truef(t, checkDeadlockErr(tx2Err), "Wrong error: %w", tx2Err)
-		return
-	}
-	assert.Fail(t, "Deadlock error is expecting at one of the goroutines")
+	require.True(t, checkDeadlockErr(tx2Err), "deadlock error is expecting at one of the goroutines")
 }
 
 func cleanupDB(ctx context.Context, dbConn *sql.DB, table1Name string, table2Name string) error {

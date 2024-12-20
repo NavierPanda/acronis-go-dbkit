@@ -13,8 +13,8 @@ import (
 	gotesting "testing"
 	"time"
 
-	"github.com/jackc/pgconn"
-	pg "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 
 	"github.com/acronis/go-dbkit"

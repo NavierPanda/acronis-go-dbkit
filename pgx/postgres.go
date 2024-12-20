@@ -12,8 +12,10 @@ Released under MIT license.
 package pgx
 
 import (
-	"github.com/jackc/pgconn"
-	pg "github.com/jackc/pgx/v4/stdlib"
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/acronis/go-dbkit"
 )
@@ -21,7 +23,8 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&pg.Driver{}, func(err error) bool {
-		if pgErr, ok := err.(*pgconn.PgError); ok {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
 			switch errCode := dbkit.PostgresErrCode(pgErr.Code); errCode {
 			case dbkit.PgxErrCodeDeadlockDetected:
 				return true
@@ -39,7 +42,9 @@ func init() {
 // CheckPostgresError checks if the passed error relates to Postgres,
 // and it's internal code matches the one from the argument.
 func CheckPostgresError(err error, errCode dbkit.PostgresErrCode) bool {
-	if pgErr, ok := err.(*pgconn.PgError); ok {
+	var pgErr *pgconn.PgError
+	ok := errors.As(err, &pgErr)
+	if ok {
 		return pgErr.Code == string(errCode)
 	}
 	return false
@@ -53,7 +58,8 @@ func CheckPostgresError(err error, errCode dbkit.PostgresErrCode) bool {
 // It's recommended to handle this error as retryable since the statement cache will be invalidated,
 // and the query will be re-prepared (it's done automatically by the driver).
 func CheckInvalidCachedPlanError(err error) bool {
-	if pgErr, ok := err.(*pgconn.PgError); ok {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
 		return checkInvalidCachedPlanPgError(pgErr)
 	}
 	return false
