@@ -17,9 +17,9 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rubenv/sql-migrate v1.0.0
 	github.com/stretchr/testify v1.10.0
-	github.com/testcontainers/testcontainers-go v0.34.0
-	github.com/testcontainers/testcontainers-go/modules/mariadb v0.34.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0
+	github.com/testcontainers/testcontainers-go v0.33.0
+	github.com/testcontainers/testcontainers-go/modules/mariadb v0.33.0
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.33.0
 )
 
 require (
