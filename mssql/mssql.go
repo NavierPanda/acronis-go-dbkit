@@ -24,7 +24,7 @@ func init() {
 	dbkit.RegisterIsRetryableFunc(&mssql.Driver{}, func(err error) bool {
 		var msErr mssql.Error
 		if errors.As(err, &msErr) {
-			if msErr.Number == int32(MSSQLErrDeadlock) { // deadlock error
+			if msErr.Number == int32(ErrDeadlock) { // deadlock error
 				return true
 			}
 		}
@@ -37,12 +37,13 @@ type ErrCode int32
 
 // MSSQL error codes (will be filled gradually).
 const (
-	MSSQLErrDeadlock                 ErrCode = 1205
-	MSSQLErrCodeUniqueViolation      ErrCode = 2627
-	MSSQLErrCodeUniqueIndexViolation ErrCode = 2601
+	ErrDeadlock                 ErrCode = 1205
+	ErrCodeUniqueViolation      ErrCode = 2627
+	ErrCodeUniqueIndexViolation ErrCode = 2601
 )
 
-// CheckMSSQLError checks if the passed error relates to MSSQL and it's internal code matches the one from the argument.
+// CheckMSSQLError checks if the passed error relates to MSSQL,
+// and it's internal code matches the one from the argument.
 func CheckMSSQLError(err error, errCode ErrCode) bool {
 	var msErr mssql.Error
 	if errors.As(err, &msErr) {

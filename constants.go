@@ -48,23 +48,6 @@ const (
 	DialectMSSQL    Dialect = "mssql"
 )
 
-// PostgresErrCode defines the type for Postgres error codes.
-type PostgresErrCode string
-
-// Postgres error codes (will be filled gradually).
-const (
-	PgxErrCodeUniqueViolation      PostgresErrCode = "23505"
-	PgxErrCodeDeadlockDetected     PostgresErrCode = "40P01"
-	PgxErrCodeSerializationFailure PostgresErrCode = "40001"
-	PgxErrFeatureNotSupported      PostgresErrCode = "0A000"
-
-	// nolint: staticcheck // lib/pq using is deprecated. Use pgx Postgres driver.
-	PostgresErrCodeUniqueViolation PostgresErrCode = "unique_violation"
-	// nolint: staticcheck // lib/pq using is deprecated. Use pgx Postgres driver.
-	PostgresErrCodeDeadlockDetected     PostgresErrCode = "deadlock_detected"
-	PostgresErrCodeSerializationFailure PostgresErrCode = "serialization_failure"
-)
-
 // PostgresSSLMode defines possible values for Postgres sslmode connection parameter.
 type PostgresSSLMode string
 

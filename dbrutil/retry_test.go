@@ -16,14 +16,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/acronis/go-dbkit"
-	_ "github.com/acronis/go-dbkit/pgx"
+	"github.com/acronis/go-dbkit/pgx"
 )
 
 // Test that retriable errors stays retriable even wrapped in Tx structures
 func TestTxErrorsIsRetriable(t *testing.T) {
-	retriable := []dbkit.PostgresErrCode{
-		dbkit.PgxErrCodeDeadlockDetected,
-		dbkit.PgxErrCodeSerializationFailure,
+	retriable := []pgx.ErrCode{
+		pgx.ErrCodeDeadlockDetected,
+		pgx.ErrCodeSerializationFailure,
 	}
 
 	mkerr := func(code string) []error {

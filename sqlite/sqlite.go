@@ -13,7 +13,8 @@ package sqlite
 
 import (
 	"errors"
-	sqlite3 "github.com/mattn/go-sqlite3"
+
+	"github.com/mattn/go-sqlite3"
 
 	"github.com/acronis/go-dbkit"
 )
@@ -32,7 +33,8 @@ func init() {
 	})
 }
 
-// CheckSQLiteError checks if the passed error relates to SQLite and it's internal code matches the one from the argument.
+// CheckSQLiteError checks if the passed error relates to SQLite,
+// and it's internal code matches the one from the argument.
 func CheckSQLiteError(err error, errCode sqlite3.ErrNoExtended) bool {
 	var sqliteErr sqlite3.Error
 	if errors.As(err, &sqliteErr) {

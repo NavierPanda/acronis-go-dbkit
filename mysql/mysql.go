@@ -4,7 +4,7 @@ Copyright © 2024 Acronis International GmbH.
 Released under MIT license.
 */
 
-// Package mysql provides helpers for working MySQL database.
+// Package mysql provides helpers for working with the MySQL database using the github.com/go-sql-driver/mysql driver.
 // Should be imported explicitly.
 // To register mysql as retryable func use side effect import like so:
 //
@@ -25,7 +25,7 @@ func init() {
 		var mySQLError *mysql.MySQLError
 		if errors.As(err, &mySQLError) {
 			switch mySQLError.Number {
-			case uint16(MySQLErrDeadlock), uint16(MySQLErrLockTimedOut):
+			case uint16(ErrDeadlock), uint16(ErrLockTimedOut):
 				return true
 			}
 		}
@@ -36,21 +36,21 @@ func init() {
 	})
 }
 
-// MySQLErrCode defines the type for MySQL error codes.
-// nolint: revive
-type MySQLErrCode uint16
+// ErrCode defines the type for MySQL error codes.
+type ErrCode uint16
 
 // MySQL error codes (will be filled gradually).
 const (
-	MySQLErrCodeDupEntry MySQLErrCode = 1062
-	MySQLErrDeadlock     MySQLErrCode = 1213
-	MySQLErrLockTimedOut MySQLErrCode = 1205
+	ErrCodeDupEntry ErrCode = 1062
+	ErrDeadlock     ErrCode = 1213
+	ErrLockTimedOut ErrCode = 1205
 )
 
-// CheckMySQLError checks if the passed error relates to MySQL and it's internal code matches the one from the argument.
-func CheckMySQLError(err error, errCode MySQLErrCode) bool {
+// CheckMySQLError checks if the passed error relates to MySQL,
+// and it's internal code matches the one from the argument.
+func CheckMySQLError(err error, errCode ErrCode) bool {
 	var mySQLError *mysql.MySQLError
-	if ok := errors.As(err, &mySQLError); ok {
+	if errors.As(err, &mySQLError) {
 		return mySQLError.Number == uint16(errCode)
 	}
 	return false

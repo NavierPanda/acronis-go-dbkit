@@ -16,6 +16,6 @@ import (
 func TestDeadlockErrorHandling(t *gotesting.T) {
 	testing.DeadlockTest(t, dbkit.DialectPgx,
 		func(err error) bool {
-			return CheckPostgresError(err, dbkit.PgxErrCodeDeadlockDetected)
+			return CheckPostgresError(err, ErrCodeDeadlockDetected)
 		})
 }

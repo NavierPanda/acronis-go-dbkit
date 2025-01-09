@@ -67,9 +67,9 @@ func TestPostgresIsRetryable(t *gotesting.T) {
 	isRetryable := dbkit.GetIsRetryable(&pg.Driver{})
 	require.NotNil(t, isRetryable)
 	// enum all retriable errors
-	retriable := []dbkit.PostgresErrCode{
-		dbkit.PgxErrCodeDeadlockDetected,
-		dbkit.PgxErrCodeSerializationFailure,
+	retriable := []ErrCode{
+		ErrCodeDeadlockDetected,
+		ErrCodeSerializationFailure,
 	}
 	for _, code := range retriable {
 		var err error
