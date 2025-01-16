@@ -21,7 +21,7 @@ import (
 	"github.com/acronis/go-appkit/log/logtest"
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

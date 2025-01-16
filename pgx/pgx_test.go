@@ -13,8 +13,8 @@ import (
 	gotesting "testing"
 	"time"
 
-	"github.com/jackc/pgconn"
-	pg "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 
 	"github.com/acronis/go-dbkit"
@@ -67,9 +67,9 @@ func TestPostgresIsRetryable(t *gotesting.T) {
 	isRetryable := dbkit.GetIsRetryable(&pg.Driver{})
 	require.NotNil(t, isRetryable)
 	// enum all retriable errors
-	retriable := []dbkit.PostgresErrCode{
-		dbkit.PgxErrCodeDeadlockDetected,
-		dbkit.PgxErrCodeSerializationFailure,
+	retriable := []ErrCode{
+		ErrCodeDeadlockDetected,
+		ErrCodeSerializationFailure,
 	}
 	for _, code := range retriable {
 		var err error

@@ -8,7 +8,6 @@ package dbkit
 
 import (
 	"database/sql/driver"
-	"errors"
 	"reflect"
 
 	"github.com/acronis/go-appkit/retry"
@@ -36,14 +35,9 @@ func RegisterIsRetryableFunc(d driver.Driver, retryable retry.IsRetryable) {
 	t := reflect.TypeOf(d)
 	prev, ok := retryableErrors[t]
 	retryableErrors[t] = func(e error) bool {
-		for ; e != nil; e = errors.Unwrap(e) {
-			if ok && prev(e) {
-				return true
-			}
-			if retryable(e) {
-				return true
-			}
+		if ok && prev(e) {
+			return true
 		}
-		return false
+		return retryable(e)
 	}
 }

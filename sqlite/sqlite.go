@@ -12,7 +12,9 @@ Released under MIT license.
 package sqlite
 
 import (
-	sqlite3 "github.com/mattn/go-sqlite3"
+	"errors"
+
+	"github.com/mattn/go-sqlite3"
 
 	"github.com/acronis/go-dbkit"
 )
@@ -20,7 +22,8 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&sqlite3.SQLiteDriver{}, func(err error) bool {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) {
 			switch sqliteErr.Code {
 			case sqlite3.ErrLocked, sqlite3.ErrBusy:
 				return true
@@ -30,9 +33,11 @@ func init() {
 	})
 }
 
-// CheckSQLiteError checks if the passed error relates to SQLite and it's internal code matches the one from the argument.
+// CheckSQLiteError checks if the passed error relates to SQLite,
+// and it's internal code matches the one from the argument.
 func CheckSQLiteError(err error, errCode sqlite3.ErrNoExtended) bool {
-	if sqliteErr, ok := err.(sqlite3.Error); ok {
+	var sqliteErr sqlite3.Error
+	if errors.As(err, &sqliteErr) {
 		return sqliteErr.ExtendedCode == errCode
 	}
 	return false

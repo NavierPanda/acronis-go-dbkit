@@ -4,7 +4,7 @@ Copyright © 2024 Acronis International GmbH.
 Released under MIT license.
 */
 
-// Package pgx provides helpers for working Postgres database via jackc/pgx driver.
+// Package pgx provides helpers for working with the Postgres database using the github.com/jackc/pgx driver.
 // Should be imported explicitly.
 // To register postgres as retryable func use side effect import like so:
 //
@@ -12,8 +12,10 @@ Released under MIT license.
 package pgx
 
 import (
-	"github.com/jackc/pgconn"
-	pg "github.com/jackc/pgx/v4/stdlib"
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/acronis/go-dbkit"
 )
@@ -21,11 +23,12 @@ import (
 // nolint
 func init() {
 	dbkit.RegisterIsRetryableFunc(&pg.Driver{}, func(err error) bool {
-		if pgErr, ok := err.(*pgconn.PgError); ok {
-			switch errCode := dbkit.PostgresErrCode(pgErr.Code); errCode {
-			case dbkit.PgxErrCodeDeadlockDetected:
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch errCode := ErrCode(pgErr.Code); errCode {
+			case ErrCodeDeadlockDetected:
 				return true
-			case dbkit.PgxErrCodeSerializationFailure:
+			case ErrCodeSerializationFailure:
 				return true
 			}
 			if checkInvalidCachedPlanPgError(pgErr) {
@@ -36,10 +39,22 @@ func init() {
 	})
 }
 
+// ErrCode defines the type for Pgx error codes.
+type ErrCode string
+
+// Pgx error codes (will be filled gradually).
+const (
+	ErrCodeUniqueViolation      ErrCode = "23505"
+	ErrCodeDeadlockDetected     ErrCode = "40P01"
+	ErrCodeSerializationFailure ErrCode = "40001"
+	ErrFeatureNotSupported      ErrCode = "0A000"
+)
+
 // CheckPostgresError checks if the passed error relates to Postgres,
 // and it's internal code matches the one from the argument.
-func CheckPostgresError(err error, errCode dbkit.PostgresErrCode) bool {
-	if pgErr, ok := err.(*pgconn.PgError); ok {
+func CheckPostgresError(err error, errCode ErrCode) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
 		return pgErr.Code == string(errCode)
 	}
 	return false
@@ -53,7 +68,8 @@ func CheckPostgresError(err error, errCode dbkit.PostgresErrCode) bool {
 // It's recommended to handle this error as retryable since the statement cache will be invalidated,
 // and the query will be re-prepared (it's done automatically by the driver).
 func CheckInvalidCachedPlanError(err error) bool {
-	if pgErr, ok := err.(*pgconn.PgError); ok {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
 		return checkInvalidCachedPlanPgError(pgErr)
 	}
 	return false
@@ -63,6 +79,6 @@ func CheckInvalidCachedPlanError(err error) bool {
 // Source: https://github.com/jackc/pgconn/blob/9cf57526250f6cd3e6cbf4fd7269c882e66898ce/stmtcache/lru.go#L91-L103
 func checkInvalidCachedPlanPgError(pgErr *pgconn.PgError) bool {
 	return pgErr.Severity == "ERROR" &&
-		pgErr.Code == string(dbkit.PgxErrFeatureNotSupported) &&
+		pgErr.Code == string(ErrFeatureNotSupported) &&
 		pgErr.Message == "cached plan must not change result type"
 }

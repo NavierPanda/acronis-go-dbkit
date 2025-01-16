@@ -34,21 +34,21 @@ func TestMysqlIsRetryable(t *testing.T) {
 	isRetryable := dbkit.GetIsRetryable(&mysql.MySQLDriver{})
 	require.NotNil(t, isRetryable)
 	require.True(t, isRetryable(&mysql.MySQLError{
-		Number: uint16(MySQLErrDeadlock),
+		Number: uint16(ErrDeadlock),
 	}))
 	require.True(t, isRetryable(&mysql.MySQLError{
-		Number: uint16(MySQLErrLockTimedOut),
+		Number: uint16(ErrLockTimedOut),
 	}))
 	require.True(t, isRetryable(mysql.ErrInvalidConn))
 	require.False(t, isRetryable(driver.ErrBadConn))
 	require.True(t, isRetryable(fmt.Errorf("wrapped error: %w", &mysql.MySQLError{
-		Number: uint16(MySQLErrDeadlock),
+		Number: uint16(ErrDeadlock),
 	})))
 }
 
 // TestCheckMySQLError covers behavior of CheckMySQLError func.
 func TestCheckMySQLError(t *testing.T) {
-	var deadlockErr MySQLErrCode = 1213
+	var deadlockErr ErrCode = 1213
 	sqlErr := &mysql.MySQLError{
 		Number:  1213,
 		Message: "deadlock found when trying to get lock",
