@@ -179,6 +179,34 @@ db:
 			},
 		},
 		{
+			name: "mssql dialect overridden encrypt",
+			cfgData: `
+db:
+  dialect: mssql
+  mssql:
+    host: mssql-host
+    port: 1433
+    database: mssql_db
+    user: mssql-user
+    password: mssql-password
+    txLevel: Repeatable Read
+    additionalParameters:
+      encrypt: DISABLE
+`,
+			expectedCfg: func() *Config {
+				cfg := NewDefaultConfig(supportedDialects)
+				cfg.Dialect = DialectMSSQL
+				cfg.MSSQL.Host = "mssql-host"
+				cfg.MSSQL.Port = 1433
+				cfg.MSSQL.Database = "mssql_db"
+				cfg.MSSQL.User = "mssql-user"
+				cfg.MSSQL.Password = "mssql-password"
+				cfg.MSSQL.TxIsolationLevel = IsolationLevel(sql.LevelRepeatableRead)
+				cfg.MSSQL.AdditionalParameters = map[string]string{"encrypt": "DISABLE"}
+				return cfg
+			},
+		},
+		{
 			name: "sqlite dialect",
 			cfgData: `
 db:

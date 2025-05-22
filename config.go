@@ -49,6 +49,7 @@ const (
 	cfgKeyMSSQLUser                = "mssql.user"
 	cfgKeyMSSQLPassword            = "mssql.password" //nolint: gosec
 	cfgKeyMSSQLTxLevel             = "mssql.txLevel"
+	cfgKeyMSSQLAdditionalParams    = "mssql.additionalParameters"
 )
 
 // Config represents a set of configuration parameters working with SQL databases.
@@ -169,12 +170,13 @@ type MySQLConfig struct {
 
 // MSSQLConfig represents a set of configuration parameters for working with MSSQL.
 type MSSQLConfig struct {
-	Host             string         `mapstructure:"host" yaml:"host" json:"host"`
-	Port             int            `mapstructure:"port" yaml:"port" json:"port"`
-	User             string         `mapstructure:"user" yaml:"user" json:"user"`
-	Password         string         `mapstructure:"password" yaml:"password" json:"password"`
-	Database         string         `mapstructure:"database" yaml:"database" json:"database"`
-	TxIsolationLevel IsolationLevel `mapstructure:"txLevel" yaml:"txLevel" json:"txLevel"`
+	Host                 string            `mapstructure:"host" yaml:"host" json:"host"`
+	Port                 int               `mapstructure:"port" yaml:"port" json:"port"`
+	User                 string            `mapstructure:"user" yaml:"user" json:"user"`
+	Password             string            `mapstructure:"password" yaml:"password" json:"password"`
+	Database             string            `mapstructure:"database" yaml:"database" json:"database"`
+	TxIsolationLevel     IsolationLevel    `mapstructure:"txLevel" yaml:"txLevel" json:"txLevel"`
+	AdditionalParameters map[string]string `mapstructure:"additionalParameters" yaml:"additionalParameters" json:"additionalParameters"`
 }
 
 // SQLiteConfig represents a set of configuration parameters for working with SQLite.
@@ -336,6 +338,13 @@ func (c *Config) setMSSQLConfig(dp config.DataProvider) error {
 	}
 	if c.MSSQL.TxIsolationLevel, err = getIsolationLevel(dp, cfgKeyMSSQLTxLevel); err != nil {
 		return err
+	}
+	var additionalParams map[string]string
+	if additionalParams, err = dp.GetStringMapString(cfgKeyMSSQLAdditionalParams); err != nil {
+		return err
+	}
+	if len(additionalParams) != 0 {
+		c.MSSQL.AdditionalParameters = additionalParams
 	}
 
 	return nil

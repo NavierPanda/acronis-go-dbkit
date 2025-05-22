@@ -19,16 +19,23 @@ import (
 // MakeMSSQLDSN makes DSN for opening MSSQL database.
 func MakeMSSQLDSN(cfg *MSSQLConfig) string {
 	query := url.Values{}
-	query.Add("database", cfg.Database)
+	const dbKeyConfig = "database"
+	query.Add(dbKeyConfig, cfg.Database)
 
-	u := &url.URL{
+	u := url.URL{
 		Scheme:   "sqlserver",
 		User:     url.UserPassword(cfg.User, cfg.Password),
 		Host:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		RawQuery: query.Encode(),
 	}
+	if len(cfg.AdditionalParameters) == 0 {
+		return u.String()
+	}
 
-	return u.String()
+	return urlWithOptionalParameters(u, cfg.AdditionalParameters,
+		map[string]struct{}{
+			dbKeyConfig: {},
+		})
 }
 
 // MakeMySQLDSN makes DSN for opening MySQL database.
@@ -62,19 +69,40 @@ func MakePostgresDSN(cfg *PostgresConfig) string {
 	if cfg.SearchPath != "" {
 		connURI.RawQuery += fmt.Sprintf("&search_path=%s", url.QueryEscape(cfg.SearchPath))
 	}
-	if len(cfg.AdditionalParameters) != 0 {
-		queryParts := make([]string, 0, len(cfg.AdditionalParameters))
-		for k, v := range cfg.AdditionalParameters {
-			queryParts = append(queryParts, fmt.Sprintf("%s=%s", k, url.QueryEscape(v)))
-		}
-		sort.Strings(queryParts) // Sort to make DSN deterministic.
-		connURI.RawQuery += "&" + strings.Join(queryParts, "&")
+	if len(cfg.AdditionalParameters) == 0 {
+		return connURI.String()
 	}
-	return connURI.String()
+
+	ignore := map[string]struct{}{
+		"sslmode": {},
+	}
+	if cfg.SearchPath != "" {
+		ignore["search_path"] = struct{}{}
+	}
+
+	return urlWithOptionalParameters(connURI, cfg.AdditionalParameters,
+		ignore)
 }
 
 // MakeSQLiteDSN makes DSN for opening SQLite database.
 func MakeSQLiteDSN(cfg *SQLiteConfig) string {
 	// Connection params will be used here in the future.
 	return cfg.Path
+}
+
+func urlWithOptionalParameters(
+	u url.URL,
+	params map[string]string,
+	keysToIgnore map[string]struct{},
+) string {
+	queryParts := make([]string, 0, len(params))
+	for k, v := range params {
+		if _, ok := keysToIgnore[k]; ok {
+			continue
+		}
+		queryParts = append(queryParts, fmt.Sprintf("%s=%s", k, url.QueryEscape(v)))
+	}
+	sort.Strings(queryParts) // Sort to make DSN deterministic.
+	u.RawQuery += "&" + strings.Join(queryParts, "&")
+	return u.String()
 }

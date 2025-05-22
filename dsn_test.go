@@ -47,6 +47,32 @@ func TestMakePostgresDSN(t *testing.T) {
 			WantDSN: "postgres://pgadmin:pgpassword@pghost:5433/pgdb?sslmode=require&search_path=pgsearch&param1=foo&param2=bar",
 		},
 		{
+			Name: "search_path and sslmode are not replaced",
+			Cfg: &PostgresConfig{
+				Host:                 "pghost",
+				Port:                 5433,
+				User:                 "pgadmin",
+				Password:             "pgpassword",
+				Database:             "pgdb",
+				SSLMode:              PostgresSSLModeRequire,
+				SearchPath:           "pgsearch",
+				AdditionalParameters: map[string]string{"search_path": "not_pgsearch", "sslmode": "disable", "apr1": "foo"},
+			},
+			WantDSN: "postgres://pgadmin:pgpassword@pghost:5433/pgdb?sslmode=require&search_path=pgsearch&apr1=foo",
+		},
+		{
+			Name: "search_path can be passed through extras, but ssl mode can't",
+			Cfg: &PostgresConfig{
+				Host:                 "pghost",
+				Port:                 5433,
+				User:                 "pgadmin",
+				Password:             "pgpassword",
+				Database:             "pgdb",
+				AdditionalParameters: map[string]string{"search_path": "not_pgsearch", "sslmode": "disable", "apr1": "foo"},
+			},
+			WantDSN: "postgres://pgadmin:pgpassword@pghost:5433/pgdb?sslmode=verify-ca&apr1=foo&search_path=not_pgsearch",
+		},
+		{
 			Name: "base",
 			Cfg: &PostgresConfig{
 				Host:                 "pghost",
@@ -63,7 +89,7 @@ func TestMakePostgresDSN(t *testing.T) {
 	for i := range tests {
 		tt := tests[i]
 		t.Run(tt.Name, func(t *testing.T) {
-			require.Equal(t, MakePostgresDSN(tt.Cfg), tt.WantDSN)
+			require.Equal(t, tt.WantDSN, MakePostgresDSN(tt.Cfg))
 		})
 	}
 }
@@ -83,15 +109,54 @@ func TestMakePgSQLDSN(t *testing.T) {
 }
 
 func TestMakeMSSQLDSN(t *testing.T) {
-	cfg := &MSSQLConfig{
-		Host:             "myhost",
-		TxIsolationLevel: IsolationLevel(sql.LevelReadCommitted),
-		Port:             1433,
-		User:             "myadmin",
-		Password:         "mypassword",
-		Database:         "sysdb",
+	tests := []struct {
+		Name    string
+		Cfg     *MSSQLConfig
+		WantDSN string
+	}{
+		{
+			Name: "basic sql server config",
+			Cfg: &MSSQLConfig{
+				Host:             "myhost",
+				TxIsolationLevel: IsolationLevel(sql.LevelReadCommitted),
+				Port:             1433,
+				User:             "myadmin",
+				Password:         "mypassword",
+				Database:         "sysdb",
+			},
+			WantDSN: "sqlserver://myadmin:mypassword@myhost:1433?database=sysdb",
+		},
+		{
+			Name: "additional parameters are used and sorted",
+			Cfg: &MSSQLConfig{
+				Host:                 "myhost",
+				TxIsolationLevel:     IsolationLevel(sql.LevelReadCommitted),
+				Port:                 1433,
+				User:                 "myadmin",
+				Password:             "mypassword",
+				Database:             "sysdb",
+				AdditionalParameters: map[string]string{"param1": "foo", "param2": "bar"},
+			},
+			WantDSN: "sqlserver://myadmin:mypassword@myhost:1433?database=sysdb&param1=foo&param2=bar",
+		},
+		{
+			Name: "additional parameters don't overwrite existing",
+			Cfg: &MSSQLConfig{
+				Host:                 "myhost",
+				TxIsolationLevel:     IsolationLevel(sql.LevelReadCommitted),
+				Port:                 1433,
+				User:                 "myadmin",
+				Password:             "mypassword",
+				Database:             "sysdb",
+				AdditionalParameters: map[string]string{"database": "master", "arb": "bar"},
+			},
+			WantDSN: "sqlserver://myadmin:mypassword@myhost:1433?database=sysdb&arb=bar",
+		},
 	}
-	wantDSN := "sqlserver://myadmin:mypassword@myhost:1433?database=sysdb"
-	gotDSN := MakeMSSQLDSN(cfg)
-	require.Equal(t, wantDSN, gotDSN)
+	for i := range tests {
+		tt := tests[i]
+		t.Run(tt.Name, func(t *testing.T) {
+			require.Equal(t, MakeMSSQLDSN(tt.Cfg), tt.WantDSN)
+		})
+	}
 }
